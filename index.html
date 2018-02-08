@@ -1,1 +1,74 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><link rel="manifest" href="/todoList/manifest.json"><link rel="shortcut icon" href="./favicon.ico"><title>React App</title><link href="./static/css/main.238f6636.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="text/javascript" src="./static/js/main.d32a89a5.js"></script></body></html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>todoList in Vue.js</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <script src="vue.js"></script>
+    <div id="app" class="container">
+        <div class="input-box">
+            <input type="text" class="input" placeholder="What to do?" @keydown.enter="addTodo()" v-model="todoItem">
+        </div>
+        <div class="list">
+            <item :task="taskContent" :index="index+1" :key="index" v-for="(taskContent,index) in todoList"></item>
+        </div>
+        <div class="line-manage" v-show="selectedList.length>0"></div>
+        <div class="footer" id="doneList">todo</div>
+    </div>
+    </div>
+    <script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            todoList: [],
+            todoItem: '',
+            finishList: [],
+            selectedList:[],
+        },
+        methods: {
+            selectAll: function() {
+                this.$refs.textarea.select();
+            },
+            addTodo: function(e) {
+                this.todoList.push(this.todoItem);
+                this.todoItem = '';
+            },
+            countSelectedItems: function(){
+
+            }
+        }
+
+    })
+
+ Vue.component('item', {
+  template: `<div class="row" :class="{select: isSelected}" @click="selectItem" >
+                <span>
+                <span class="row-order">#{{index}}:</span>
+                <span class="row-detail">{{task}}</span>
+                </span>
+                <span class="row-manage">
+                <span class="task-finish p5">√</span>
+                <span class="task-del p5 font">x</span>
+                </span>
+            </div>`,
+  data:function(){
+      return {
+        isSelected: false
+      }
+    },
+  methods:{
+  selectItem:function(){
+    this.isSelected = !this.isSelected;
+    console.log(this._uid)
+    //this.$emit('countSelectedItems')
+  }
+  },
+  props:['task','index']
+})
+    </script>
+</body>
+
+</html>
