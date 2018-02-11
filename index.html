@@ -10,48 +10,92 @@
     <script src="vue.js"></script>
     <div id="app" class="container">
         <div class="input-box">
-            <input type="text" class="input" placeholder="What to do?" @keydown.enter="addTodo()" v-model="todoItem">
+            <input type="text" class="input" placeholder="What to do?" @keydown.enter="addTodo()" v-model="todoItem" autofocus>
         </div>
         <div class="list">
-            <item :task="taskContent" :index="index+1" :key="index" v-for="(taskContent,index) in todoList"></item>
+            <item :task="taskContent" :index="index+1" :key="index" v-for="(taskContent,index) in todoList" @count-selected-items="countSelectedItems"></item>
         </div>
-        <div class="line-manage" v-show="selectedList.length>0"></div>
-        <div class="footer" id="doneList">todo</div>
+        <div class="line-manage">
+        <span v-show="showButton">
+          <span class="task-finish p5 font btn" @click="finishTasks">done</span>
+          <span class="task-del p5 font btn" @click="deleteTasks">del</span>
+          </span>
+        </div>
+        <div class="footer" id="doneList" @click="showFinish">todo</div>
     </div>
     </div>
     <script>
+
     var app = new Vue({
         el: "#app",
         data: {
             todoList: [],
-            todoItem: '',
             finishList: [],
+            todoItem: '',
             selectedList:[],
+            showButton: false
         },
         methods: {
-            selectAll: function() {
-                this.$refs.textarea.select();
-            },
             addTodo: function(e) {
                 this.todoList.push(this.todoItem);
                 this.todoItem = '';
             },
-            countSelectedItems: function(){
+            finishTasks:function(){
+              for(index of this.selectedList.sort((a,b)=>b-a)){
+                this.finishList.push(this.todoList[index-1]);
+                this.todoList.splice(index-1,1);
+                this.$children[index-1].isSelected = false;
+                this.selectedList =[];
+              }
+              this.updateButtonState()
+            },
+            deleteTasks:function(){
+              for(index of this.selectedList.sort((a,b)=>b-a)){
+                this.todoList.splice(index-1,1);
+                this.$children[index-1].isSelected = false;
+                this.selectedList =[]
+                }
 
+                this.updateButtonState()
+            },
+            countSelectedItems: function(index){
+              var i = this.selectedList.indexOf(index)
+              if(i === -1){
+                this.selectedList.push(index)
+              }else{
+                this.selectedList.splice(i,1);
+              }
+              this.updateButtonState();
+            },
+            updateButtonState:function(){
+              var len = this.selectedList.length;
+              if(len === 0) this.showButton = false
+                else this.showButton= true;
+            },
+            showFinish:function(){
+                    let words = '';
+                    for(let i=0,len = this.finishList.length;i<len;i++){
+                      words += '\n'  +(i+1)+'.  '+ this.finishList[i] ;
+                    }
+                    alert('You have totally finished '+ this.finishList.length +' tasks \n'+words);
+                    console.log('You have totally finished '+ this.finishList.length +' tasks \n'+words);
             }
+        },
+        mounted:function(){
+          this.todoList = ['aaa','bbb','ccc','ddd']
         }
 
     })
 
- Vue.component('item', {
+Vue.component('item', {
   template: `<div class="row" :class="{select: isSelected}" @click="selectItem" >
                 <span>
                 <span class="row-order">#{{index}}:</span>
                 <span class="row-detail">{{task}}</span>
                 </span>
                 <span class="row-manage">
-                <span class="task-finish p5">√</span>
-                <span class="task-del p5 font">x</span>
+                <span class="task-finish p5" @click.stop="finishTask">√</span>
+                <span class="task-del p5 font" @click.stop="deleteTask">x</span>
                 </span>
             </div>`,
   data:function(){
@@ -62,10 +106,23 @@
   methods:{
   selectItem:function(){
     this.isSelected = !this.isSelected;
-    console.log(this._uid)
-    //this.$emit('countSelectedItems')
-  }
+    this.$emit('count-selected-items',this.index)
   },
+  finishTask:function(){
+    this.isSelected = false;
+    this.$parent.finishList.push(this.$parent.todoList[this.index-1]);
+    this.$parent.todoList.splice(this.index-1,1)
+  },
+   deleteTask:function(){
+    this.$parent.todoList.splice(this.index-1,1)
+    if(this.isSelected){
+      this.isSelected = false;
+      this.$parent.selectedList.splice(this.$parent.selectedList.indexOf(this.index),1)
+      this.$parent.updateButtonState()
+    }
+    
+  }
+},
   props:['task','index']
 })
     </script>
